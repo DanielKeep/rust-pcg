@@ -59,7 +59,8 @@ where
     let result_cards = FromPrimitive::from_usize(NUM_CARDS).unwrap();
 
     for (round_i, round) in rounds.iter().enumerate() {
-        println!("Round {}", round_i);
+        println!("round {}", round_i);
+        println!(".. {:?}", round);
 
         // Check state of rng.
         assert_eq!(round.dump, rng.dump_internals());
