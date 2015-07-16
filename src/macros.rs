@@ -54,3 +54,10 @@ macro_rules! pcg_setseq {
             OutputPreviousIfSmall<$st>, SpecificStream<$st>, PcgDefault>;
     };
 }
+
+macro_rules! pcg_mcg {
+    ($name:ident: $rt:ty, $st:ty, $o:ident) => {
+        pub type $name = Engine<$rt, $st, $o<$rt, $st>,
+            OutputPreviousIfSmall<$st>, NoStream<$st>, PcgDefault>;
+    };
+}

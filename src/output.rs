@@ -30,7 +30,7 @@ where
 {
     fn output(internal: State) -> Result {
         let bits = size_of::<State>() * 8;
-        let result_bits = size_of::<State>() * 8;
+        let result_bits = size_of::<Result>() * 8;
         let spare_bits = bits - result_bits;
         let op_bits = {
             if spare_bits >= 64 + 5 { 5 }

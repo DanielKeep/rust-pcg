@@ -23,6 +23,7 @@ pub mod stream;
 pub use engine::Engine;
 
 #[doc(inline)] pub use engines::SetSeqXshRr_64_32 as Pcg32;
+#[doc(inline)] pub use engines::McgXshRs_64_32 as Pcg32Fast;
 
 pub trait PcgGenerator {
     type Result: PcgResult<Self::State>;
