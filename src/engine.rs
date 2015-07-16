@@ -277,6 +277,45 @@ where
 // TODO: Engine: Eq, Sub, Input, Output
 
 impl<Result, State, Output, Phase, Stream, Multiplier>
+IntoIterator
+for Engine<Result, State, Output, Phase, Stream, Multiplier>
+where
+    Result: PcgResult<State>,
+    State: PcgState + Decodable,
+    Output: PcgOutput<Result, State>,
+    Phase: PcgPhase,
+    Stream: PcgStream<State> + Decodable,
+    Multiplier: PcgMultiplier<State>,
+{
+    type Item = Result;
+    type IntoIter = ::iter::IntoIter<Self>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ::iter::IntoIter::new(self)
+    }
+}
+
+impl<'a, Result, State, Output, Phase, Stream, Multiplier>
+IntoIterator
+for &'a mut Engine<Result, State, Output, Phase, Stream, Multiplier>
+where
+    Result: 'a + PcgResult<State>,
+    State: 'a + PcgState + Decodable,
+    Output: 'a + PcgOutput<Result, State>,
+    Phase: 'a + PcgPhase,
+    Stream: 'a + PcgStream<State> + Decodable,
+    Multiplier: 'a + PcgMultiplier<State>,
+    State::Wrapping: 'a,
+{
+    type Item = Result;
+    type IntoIter = ::iter::IntoIterMut<'a, Engine<Result, State, Output, Phase, Stream, Multiplier>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ::iter::IntoIterMut::new(self)
+    }
+}
+
+impl<Result, State, Output, Phase, Stream, Multiplier>
 Decodable
 for Engine<Result, State, Output, Phase, Stream, Multiplier>
 where

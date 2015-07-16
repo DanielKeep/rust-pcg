@@ -17,6 +17,7 @@ use bounds::{DistanceToState, NextBoundedResult, WrappingState};
 pub mod bounds;
 mod engine;
 pub mod engines;
+pub mod iter;
 pub mod output;
 pub mod stream;
 
@@ -43,6 +44,32 @@ pub trait PcgGenerator {
 
     fn distance_to(&self, other: &Self) -> Option<Self::State>
     where Self::State: DistanceToState;
+
+    fn iter(self) -> iter::IntoIter<Self>
+    where Self: Sized {
+        iter::IntoIter::new(self)
+    }
+
+    fn iter_bounded(self, upper_bound: Self::Result) -> iter::IntoIterBounded<Self>
+    where
+        Self: Sized,
+        Self::Result: NextBoundedResult,
+    {
+        iter::IntoIterBounded::new(self, upper_bound)
+    }
+
+    fn iter_mut(&mut self) -> iter::IntoIterMut<Self>
+    where Self: Sized {
+        iter::IntoIterMut::new(self)
+    }
+
+    fn iter_mut_bounded(&mut self, upper_bound: Self::Result) -> iter::IntoIterMutBounded<Self>
+    where
+        Self: Sized,
+        Self::Result: NextBoundedResult,
+    {
+        iter::IntoIterMutBounded::new(self, upper_bound)
+    }
 
     fn next(&mut self) -> Self::Result;
 
