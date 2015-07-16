@@ -3,10 +3,16 @@
 
 extern crate pcg;
 mod util;
-use util::{Round, test_pcg};
+use util::{RngProperties, Round, test_pcg};
 
 #[test]
 fn test_pcg32() {
+    let properties = &RngProperties {
+        period_pow2: 64,
+        streams_pow2: 63,
+        size_of_rng: 16,
+        is_mcg: false,
+    };
     let rounds = &[
         Round {
             dump: "6364136223846793005 109 1753877967969059832",
@@ -60,5 +66,5 @@ fn test_pcg32() {
         },
     ];
 
-    test_pcg(rounds, |state, stream| pcg::Pcg32::with_stream(state as u64, stream as u64))
+    test_pcg(properties, rounds, |state, stream| pcg::Pcg32::with_stream(state as u64, stream as u64))
 }

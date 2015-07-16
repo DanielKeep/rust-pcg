@@ -10,6 +10,13 @@ use self::num::{FromPrimitive, ToPrimitive};
 use self::pcg::{PcgGenerator, PcgStream};
 use self::pcg::bounds::{DistanceToState, NextBoundedResult};
 
+pub struct RngProperties {
+    pub period_pow2: usize,
+    pub streams_pow2: usize,
+    pub size_of_rng: usize,
+    pub is_mcg: bool,
+}
+
 #[derive(Debug)]
 pub struct Round<'a, R: 'a> {
     pub dump: &'static str,
@@ -27,24 +34,24 @@ const CARD_NUMBERS: &'static [&'static str] = &[
 ];
 const CARD_SUITS: &'static [&'static str] = &["h", "c", "d", "s"];
 
-pub fn test_pcg<Rng, Fn>(rounds: &[Round<Rng::Result>], create_rng: Fn)
+pub fn test_pcg<Rng, Fn>(properties: &RngProperties, rounds: &[Round<Rng::Result>], create_rng: Fn)
 where
     Rng: PcgGenerator + Clone + Debug,
     Fn: FnOnce(usize, usize) -> Rng,
     Rng::Result: Copy + Debug + Eq + FromPrimitive + ToPrimitive
         + One + Step + NextBoundedResult,
-    Rng::State: Copy + FromPrimitive + ToPrimitive + DistanceToState,
+    Rng::State: Copy + Debug + FromPrimitive + ToPrimitive + DistanceToState,
     for<'a> &'a Rng::Result: Add<Output=Rng::Result>,
 {
     let mut rng = create_rng(42, 54);
     println!("rng: {:#?}", rng);
-    // println!(".. internals: {:?}", rng.dump_internals());
+    println!(".. internals: {:?}", rng.dump_internals());
     println!(".. is_mcg: {}", Rng::Stream::is_mcg());
 
-    // assert_eq!(format!("{:?}", rng.dump_internals()), "6364136223846793005 109 1753877967969059832");
-    assert_eq!(Rng::period_pow2(), 64);
-    assert_eq!(Rng::streams_pow2(), 63);
-    assert_eq!(size_of::<Rng>(), 16);
+    assert_eq!(Rng::period_pow2(), properties.period_pow2);
+    assert_eq!(Rng::streams_pow2(), properties.streams_pow2);
+    assert_eq!(size_of::<Rng>(), properties.size_of_rng);
+    assert_eq!(Rng::Stream::is_mcg(), properties.is_mcg);
 
     let result_0 = FromPrimitive::from_usize(0).unwrap();
     let result_2 = FromPrimitive::from_usize(2).unwrap();
@@ -55,7 +62,7 @@ where
         println!("Round {}", round_i);
 
         // Check state of rng.
-        // assert_eq!(round.dump, &*format!("{:?}", rng.dump_internals()));
+        assert_eq!(round.dump, rng.dump_internals());
 
         // Make some N-bit numbers.
         for &ex in round.numbers {
@@ -64,7 +71,7 @@ where
 
         // Again.
         rng.backstep(FromPrimitive::from_usize(round.numbers.len()).unwrap());
-        // assert_eq!(round.dump, &*format!("{:?}", rng.dump_internals()));
+        assert_eq!(round.dump, rng.dump_internals());
         for &ex in round.numbers {
             assert_eq!(ex, rng.next());
         }
@@ -109,14 +116,11 @@ where
     Rng: PcgGenerator,
     Rng::Result: NextBoundedResult + FromPrimitive + ToPrimitive,
 {
-    println!("shuffle(..):");
     let mut to = slice.len();
     while slice[..to].len() > 1 {
         let bound = FromPrimitive::from_usize(slice[..to].len()).unwrap();
         let chosen = rng.next_bounded(bound).to_usize().unwrap();
-        print!(" {:?}", chosen);
         to -= 1;
         slice.swap(chosen, to);
     }
-    println!("");
 }

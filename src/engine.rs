@@ -82,11 +82,6 @@ where
 
     // TODO: seed (probably don't need it; it's just a re-assignment)
 
-    pub fn dump_internals(&self) -> DumpEngineInternals<Result, State, Output, Phase, Stream, Multiplier>
-    where State: Debug {
-        DumpEngineInternals { ptr: self }
-    }
-
     // pub fn max() -> Result
     // where Result: Bounded {
     //     Result::max_value()
@@ -267,40 +262,15 @@ where
     fn streams_pow2() -> usize {
         Stream::streams_pow2()
     }
+
+    #[doc(hidden)]
+    fn dump_internals(&self) -> String
+    where State: Debug {
+        format!("{:?} {:?} {:?}",
+            Multiplier::multiplier(),
+            self.stream.increment(),
+            self.state)
+    }
 }
 
 // TODO: Engine: Eq, Sub, Input, Output
-
-pub struct DumpEngineInternals<'a, Result, State, Output, Phase, Stream, Multiplier>
-where
-    Result: 'a + PcgResult<State>,
-    State: 'a + PcgState + Debug,
-    Output: 'a + PcgOutput<Result, State>,
-    Phase: 'a + PcgPhase,
-    Stream: 'a + PcgStream<State>,
-    Multiplier: 'a + PcgMultiplier<State>,
-    State::Wrapping: 'a,
-{
-    ptr: &'a Engine<Result, State, Output, Phase, Stream, Multiplier>,
-}
-
-impl<'a, Result, State, Output, Phase, Stream, Multiplier>
-Debug
-for DumpEngineInternals<'a, Result, State, Output, Phase, Stream, Multiplier>
-where
-    Result: PcgResult<State>,
-    State: PcgState + Debug,
-    Output: PcgOutput<Result, State>,
-    Phase: PcgPhase,
-    Stream: PcgStream<State>,
-    Multiplier: PcgMultiplier<State>,
-    State::Wrapping: 'a,
-{
-    fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-        try!(write!(fmt, "{:?} {:?} {:?}",
-            Multiplier::multiplier(),
-            self.ptr.stream.increment(),
-            self.ptr.state));
-        Ok(())
-    }
-}

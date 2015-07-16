@@ -5,6 +5,7 @@
 */
 extern crate num;
 
+use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::num::Wrapping;
 use std::ops::{BitOr, Shr};
@@ -47,6 +48,10 @@ pub trait PcgGenerator {
     fn period_pow2() -> usize;
 
     fn streams_pow2() -> usize;
+
+    #[doc(hidden)]
+    fn dump_internals(&self) -> String
+    where Self::State: Debug;
 }
 
 pub trait PcgResult<State>
