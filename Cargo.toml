@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Daniel Keep <daniel.keep@gmail.com>"]
 
 [dependencies]
-num = "*"
+num = "0.1.25"
 rustc-serialize = "0.3.15"
