@@ -33,10 +33,10 @@ where State: PcgState + UniqueStreamState {
 
 #[derive(Clone, Debug)]
 pub struct NoStream<State>(PhantomData<State>)
-where State: PcgState + Zero;
+where State: PcgState;
 
 impl<State> PcgStream<State> for NoStream<State>
-where State: PcgState + Zero {
+where State: PcgState {
     fn can_specify_stream() -> bool { false }
     fn is_mcg() -> bool { true }
     fn streams_pow2() -> usize { 0 }

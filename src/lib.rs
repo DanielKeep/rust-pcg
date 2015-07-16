@@ -7,28 +7,46 @@ extern crate num;
 
 use std::marker::PhantomData;
 use std::num::Wrapping;
-use std::ops::{Add, BitAnd, BitOr, Mul, Shl, Shr};
+use std::ops::{BitOr, Shr};
 use num::{One, Zero};
+use bounds::{DistanceToState, NextBoundedResult, WrappingState};
 
 #[macro_use] mod macros;
+pub mod bounds;
 mod engine;
 pub mod engines;
-mod output;
-mod stream;
+pub mod output;
+pub mod stream;
 
 pub use engine::Engine;
-pub use output::XshRs;
-pub use stream::{NoStream, SingleStream, SpecificStream, UniqueStream};
 
 #[doc(inline)] pub use engines::SetSeqXshRr_64_32 as Pcg32;
 
-pub trait PcgEngineTypes {
-    type Result;
-    type State;
-    type Output;
-    type Phase;
-    type Stream;
-    type Multiplier;
+pub trait PcgGenerator {
+    type Result: PcgResult<Self::State>;
+    type State: PcgState;
+    type Output: PcgOutput<Self::Result, Self::State>;
+    type Phase: PcgPhase;
+    type Stream: PcgStream<Self::State>;
+    type Multiplier: PcgMultiplier<Self::State>;
+
+    fn advance(&mut self, delta: Self::State);
+
+    fn backstep(&mut self, delta: Self::State);
+
+    fn discard(&mut self, delta: Self::State);
+
+    fn distance_to(&self, other: &Self) -> Option<Self::State>
+    where Self::State: DistanceToState;
+
+    fn next(&mut self) -> Self::Result;
+
+    fn next_bounded(&mut self, upper_bound: Self::Result) -> Self::Result
+    where Self::Result: NextBoundedResult;
+
+    fn period_pow2() -> usize;
+
+    fn streams_pow2() -> usize;
 }
 
 pub trait PcgResult<State>
@@ -37,14 +55,9 @@ where State: PcgState {
     fn rotate_right(self, n: u32) -> Self;
 }
 
-pub trait PcgState: Sized + Clone + Eq + Ord + BitOr<Output=Self> + One + Shr<usize, Output=Self> + Zero
-where 
-    Wrapping<Self>: Add<Output=Wrapping<Self>>
-        + BitAnd<Output=Wrapping<Self>>
-        + Mul<Output=Wrapping<Self>>
-        + Shl<usize, Output=Wrapping<Self>>
-        + Shr<usize, Output=Wrapping<Self>>,
-{
+pub trait PcgState: Sized + Clone + Eq + Ord + BitOr<Output=Self> + One + Shr<usize, Output=Self> + Zero {
+    type Wrapping: WrappingState<State=Self>;
+
     fn bit_0() -> Self;
     fn bit_3() -> Self;
     fn into_usize(self) -> usize;
@@ -52,6 +65,7 @@ where
     fn is_mcg_wrapped(&self) -> bool;
     fn negate(self) -> Self;
     fn wrapped(self) -> Self;
+    fn wrapping(self) -> Self::Wrapping;
 }
 
 pub trait PcgOutput<Result, State>

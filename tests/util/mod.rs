@@ -1,29 +1,14 @@
 extern crate num;
 extern crate pcg;
 
-use std::num::Wrapping;
-use std::ops::{Add, BitAnd, Mul, Rem, Shl, Shr, Sub};
-use self::num::{Bounded, FromPrimitive, One, ToPrimitive};
-use self::pcg::{Engine, PcgResult, PcgState, PcgOutput, PcgPhase, PcgStream, PcgMultiplier};
+use self::num::{FromPrimitive, ToPrimitive};
+use self::pcg::PcgGenerator;
+use self::pcg::bounds::NextBoundedResult;
 
-pub fn shuffle<Result, State, Output, Phase, Stream, Multiplier>(
-    slice: &mut [Result],
-    rng: &mut Engine<Result, State, Output, Phase, Stream, Multiplier>
-)
+pub fn shuffle<Rng>(slice: &mut [Rng::Result], rng: &mut Rng)
 where
-    Result: PcgResult<State> + Bounded + Clone + FromPrimitive + Ord + ToPrimitive
-        + One + Add<Output=Result> + Sub<Output=Result> + Rem<Output=Result>,
-    State: PcgState,
-    Output: PcgOutput<Result, State>,
-    Phase: PcgPhase,
-    Stream: PcgStream<State>,
-    Multiplier: PcgMultiplier<State>,
-    Wrapping<Result>: Add<Output=Wrapping<Result>> + Sub<Output=Wrapping<Result>>,
-    Wrapping<State>: Add<Output=Wrapping<State>>
-        + BitAnd<Output=Wrapping<State>>
-        + Mul<Output=Wrapping<State>>
-        + Shl<usize, Output=Wrapping<State>>
-        + Shr<usize, Output=Wrapping<State>>,
+    Rng: PcgGenerator,
+    Rng::Result: NextBoundedResult + FromPrimitive + ToPrimitive,
 {
     println!("shuffle(..):");
     let mut to = slice.len();

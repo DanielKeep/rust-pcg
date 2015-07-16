@@ -2,9 +2,9 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::mem::size_of;
 use std::num::Wrapping;
-use std::ops::{Add, BitAnd, Mul, Not, Rem, Shl, Shr, Sub};
 use num::{Bounded, One, Zero};
-use {PcgEngineTypes, PcgMultiplier, PcgOutput, PcgPhase, PcgResult, PcgState, PcgStatefulStream, PcgStream};
+use {PcgGenerator, PcgMultiplier, PcgOutput, PcgPhase, PcgResult, PcgState, PcgStatefulStream, PcgStream};
+use bounds::{DistanceToState, NextBoundedResult};
 
 #[derive(Clone, Debug)]
 pub struct Engine<Result, State, Output, Phase, Stream, Multiplier>
@@ -15,11 +15,6 @@ where
     Phase: PcgPhase,
     Stream: PcgStream<State>,
     Multiplier: PcgMultiplier<State>,
-    Wrapping<State>: Add<Output=Wrapping<State>>
-        + BitAnd<Output=Wrapping<State>>
-        + Mul<Output=Wrapping<State>>
-        + Shl<usize, Output=Wrapping<State>>
-        + Shr<usize, Output=Wrapping<State>>,
 {
     state: State,
     stream: Stream,
@@ -35,11 +30,6 @@ where
     Phase: PcgPhase,
     Stream: PcgStream<State>,
     Multiplier: PcgMultiplier<State>,
-    Wrapping<State>: Add<Output=Wrapping<State>>
-        + BitAnd<Output=Wrapping<State>>
-        + Mul<Output=Wrapping<State>>
-        + Shl<usize, Output=Wrapping<State>>
-        + Shr<usize, Output=Wrapping<State>>,
 {
     pub fn new() -> Self
     where
@@ -53,13 +43,14 @@ where
     where
         Stream: Default,
     {
+        use bounds::WrappingState;
         let stream = Stream::default();
         Engine {
             state: {
                 if Stream::is_mcg() {
                     state.wrapped()
                 } else {
-                    Self::bump(&stream, (Wrapping(state) + Wrapping(stream.increment())).0)
+                    Self::bump(&stream, (state.wrapping() + stream.increment().wrapping()).into_state())
                 }
             },
             stream: stream,
@@ -71,13 +62,14 @@ where
     where
         Stream: PcgStatefulStream<State>,
     {
+        use bounds::WrappingState;
         let stream = Stream::from_stream_state(stream_state);
         Engine {
             state: {
                 if Stream::is_mcg() {
                     state.wrapped()
                 } else {
-                    Self::bump(&stream, (Wrapping(state) + Wrapping(stream.increment())).0)
+                    Self::bump(&stream, (state.wrapping() + stream.increment().wrapping()).into_state())
                 }
             },
             stream: stream,
@@ -89,64 +81,6 @@ where
     // TODO: engine(seedSeq)
 
     // TODO: seed (probably don't need it; it's just a re-assignment)
-
-    pub fn next(&mut self) -> Result {
-        let new = if Phase::output_previous() {
-            self.base_generate0()
-        } else {
-            self.base_generate()
-        };
-        Output::output(new)
-    }
-
-    pub fn next_bounded(&mut self, upper_bound: Result) -> Result
-    where
-        Result: Clone + Bounded + Ord + One + Rem<Output=Result>,
-        Wrapping<Result>: Clone
-            + Add<Output=Wrapping<Result>>
-            + Sub<Output=Wrapping<Result>>,
-    {
-        let max = Wrapping(Result::max_value());
-        let min = Wrapping(Result::min_value());
-        let one = Wrapping(Result::one());
-        let ub = Wrapping(upper_bound);
-
-        let threshold = (max - min.clone() + one - ub.clone()).0 % ub.clone().0;
-
-        loop {
-            let r = Wrapping(self.next()) - min.clone();
-            if r.0 >= threshold {
-                return r.0 % ub.0;
-            }
-        }
-    }
-
-    pub fn advance(&mut self, delta: State) {
-        self.state = Self::advance_impl(
-            self.state.clone(),
-            delta,
-            Multiplier::multiplier(),
-            self.stream.increment()
-        );
-    }
-
-    pub fn backstep(&mut self, delta: State) {
-        self.advance(delta.negate());
-    }
-
-    pub fn discard(&mut self, delta: State) {
-        self.advance(delta);
-    }
-
-    pub fn distance_to(&self, other: &Self) -> Option<State>
-    where State: Not<Output=State> {
-        if self.stream.increment() != other.stream.increment() {
-            return None;
-        }
-
-        let mask = !State::zero();
-        Some(self.distance(other.state.clone(), mask))
-    }
 
     pub fn dump_internals(&self) -> DumpEngineInternals<Result, State, Output, Phase, Stream, Multiplier>
     where State: Debug {
@@ -163,14 +97,6 @@ where
     //     Result::min_value()
     // }
 
-    pub fn period_pow2() -> usize {
-        size_of::<State>()*8 - if Stream::is_mcg() { 2 } else { 0 }
-    }
-
-    pub fn streams_pow2() -> usize {
-        Stream::streams_pow2()
-    }
-
     pub fn wrapped(&self) -> bool {
         if Stream::is_mcg() {
             // For MCGs, the low order two bits never change. In this
@@ -183,6 +109,8 @@ where
     }
 
     fn advance_impl(state: State, delta: State, cur_mult: State, cur_plus: State) -> State {
+        use bounds::WrappingState;
+
         // The method used here is based on Brown, "Random Number Generation
         // with Arbitrary Stride,", Transactions of the American Nuclear
         // Society (Nov. 1994).  The algorithm is very similar to fast
@@ -191,13 +119,13 @@ where
         // Even though delta is an unsigned integer, we can pass a
         // signed integer to go backwards, it just goes "the long way round".
         let zero = State::zero();
-        let one = Wrapping(State::one());
+        let one = State::one().wrapping();
 
         let mut delta = delta;
-        let mut cur_mult = Wrapping(cur_mult);
-        let mut cur_plus = Wrapping(cur_plus);
-        let mut acc_mult = Wrapping(State::one());
-        let mut acc_plus = Wrapping(State::zero());
+        let mut cur_mult = cur_mult.wrapping();
+        let mut cur_plus = cur_plus.wrapping();
+        let mut acc_mult = State::one().wrapping();
+        let mut acc_plus = State::zero().wrapping();
 
         while delta > zero {
             if delta.is_odd() {
@@ -208,7 +136,7 @@ where
             cur_mult = cur_mult.clone() * cur_mult;
             delta = delta >> 1;
         }
-        (acc_mult * Wrapping(state) + acc_plus).0
+        (acc_mult * state.wrapping() + acc_plus).into_state()
     }
 
     fn distance(&self, new_state: State, mask: State) -> State {
@@ -216,20 +144,22 @@ where
     }
 
     fn distance_impl(cur_state: State, new_state: State, cur_mult: State, cur_plus: State, mask: State) -> State {
-        let one = Wrapping(State::one());
-        let mut the_bit = Wrapping(if Stream::is_mcg() { State::bit_3() } else { State::bit_0() });
+        use bounds::WrappingState;
+
+        let one = State::one().wrapping();
+        let mut the_bit = (if Stream::is_mcg() { State::bit_3() } else { State::bit_0() }).wrapping();
         let mut distance = State::zero();
 
-        let new_state = Wrapping(new_state);
-        let mut cur_state = Wrapping(cur_state);
-        let mut cur_mult = Wrapping(cur_mult);
-        let mut cur_plus = Wrapping(cur_plus);
-        let mask = Wrapping(mask);
+        let new_state = new_state.wrapping();
+        let mut cur_state = cur_state.wrapping();
+        let mut cur_mult = cur_mult.wrapping();
+        let mut cur_plus = cur_plus.wrapping();
+        let mask = mask.wrapping();
 
         while cur_state.clone() & mask.clone() != new_state.clone() & mask.clone() {
             if cur_state.clone() & the_bit.clone() != new_state.clone() & the_bit.clone() {
                 cur_state = cur_state * cur_mult.clone() + cur_plus.clone();
-                distance = distance | the_bit.0.clone();
+                distance = distance | the_bit.clone().into_state();
             }
             debug_assert!(cur_state.clone() & the_bit.clone() == new_state.clone() & the_bit.clone());
             the_bit = the_bit << 1;
@@ -241,7 +171,8 @@ where
     }
 
     fn bump(stream: &Stream, state: State) -> State {
-        (Wrapping(state) * Wrapping(Multiplier::multiplier()) + Wrapping(stream.increment())).0
+        use bounds::WrappingState;
+        (state.wrapping() * Multiplier::multiplier().wrapping() + stream.increment().wrapping()).into_state()
     }
 
     fn base_generate(&mut self) -> State {
@@ -256,7 +187,8 @@ where
     }
 }
 
-impl<Result, State, Output, Phase, Stream, Multiplier> PcgEngineTypes
+impl<Result, State, Output, Phase, Stream, Multiplier>
+PcgGenerator
 for Engine<Result, State, Output, Phase, Stream, Multiplier>
 where
     Result: PcgResult<State>,
@@ -265,11 +197,6 @@ where
     Phase: PcgPhase,
     Stream: PcgStream<State>,
     Multiplier: PcgMultiplier<State>,
-    Wrapping<State>: Add<Output=Wrapping<State>>
-        + BitAnd<Output=Wrapping<State>>
-        + Mul<Output=Wrapping<State>>
-        + Shl<usize, Output=Wrapping<State>>
-        + Shr<usize, Output=Wrapping<State>>,
 {
     type Result = Result;
     type State = State;
@@ -277,6 +204,69 @@ where
     type Phase = Phase;
     type Stream = Stream;
     type Multiplier = Multiplier;
+
+    fn advance(&mut self, delta: State) {
+        self.state = Self::advance_impl(
+            self.state.clone(),
+            delta,
+            Multiplier::multiplier(),
+            self.stream.increment()
+        );
+    }
+
+    fn backstep(&mut self, delta: State) {
+        self.advance(delta.negate());
+    }
+
+    fn discard(&mut self, delta: State) {
+        self.advance(delta);
+    }
+
+    fn distance_to(&self, other: &Self) -> Option<State>
+    where State: DistanceToState {
+        if self.stream.increment() != other.stream.increment() {
+            return None;
+        }
+
+        let mask = !State::zero();
+        Some(self.distance(other.state.clone(), mask))
+    }
+
+    fn next(&mut self) -> Result {
+        let new = if Phase::output_previous() {
+            self.base_generate0()
+        } else {
+            self.base_generate()
+        };
+        Output::output(new)
+    }
+
+    fn next_bounded(&mut self, upper_bound: Result) -> Result
+    where Result: NextBoundedResult {
+        use bounds::NextBoundedWrappingResult;
+
+        let max = Result::max_value().wrapping();
+        let min = Result::min_value().wrapping();
+        let one = Result::one().wrapping();
+        let ub = upper_bound.wrapping();
+
+        let threshold = (max - min.clone() + one - ub.clone()).into_result() % ub.clone().into_result();
+
+        loop {
+            let r = self.next().wrapping() - min.clone();
+            if r.clone().into_result() >= threshold {
+                return r.into_result() % ub.into_result();
+            }
+        }
+    }
+
+    fn period_pow2() -> usize {
+        size_of::<State>()*8 - if Stream::is_mcg() { 2 } else { 0 }
+    }
+
+    fn streams_pow2() -> usize {
+        Stream::streams_pow2()
+    }
 }
 
 // TODO: Engine: Eq, Sub, Input, Output
@@ -289,11 +279,7 @@ where
     Phase: 'a + PcgPhase,
     Stream: 'a + PcgStream<State>,
     Multiplier: 'a + PcgMultiplier<State>,
-    Wrapping<State>: Add<Output=Wrapping<State>>
-        + BitAnd<Output=Wrapping<State>>
-        + Mul<Output=Wrapping<State>>
-        + Shl<usize, Output=Wrapping<State>>
-        + Shr<usize, Output=Wrapping<State>>,
+    State::Wrapping: 'a,
 {
     ptr: &'a Engine<Result, State, Output, Phase, Stream, Multiplier>,
 }
@@ -308,11 +294,7 @@ where
     Phase: PcgPhase,
     Stream: PcgStream<State>,
     Multiplier: PcgMultiplier<State>,
-    Wrapping<State>: Add<Output=Wrapping<State>>
-        + BitAnd<Output=Wrapping<State>>
-        + Mul<Output=Wrapping<State>>
-        + Shl<usize, Output=Wrapping<State>>
-        + Shr<usize, Output=Wrapping<State>>,
+    State::Wrapping: 'a,
 {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
         try!(write!(fmt, "{:?} {:?} {:?}",

@@ -28,6 +28,8 @@ macro_rules! pcg_impl_result {
 macro_rules! pcg_impl_state {
     ($type_:ident) => {
         impl PcgState for $type_ {
+            type Wrapping = ::std::num::Wrapping<$type_>;
+
             fn bit_0() -> Self { 1 }
             fn bit_3() -> Self { 4 }
             fn into_usize(self) -> usize { self as usize }
@@ -35,6 +37,7 @@ macro_rules! pcg_impl_state {
             fn is_mcg_wrapped(&self) -> bool { (self & 3) != 0 }
             fn negate(self) -> Self { (::std::num::Wrapping(!self) + ::std::num::Wrapping(1)).0 }
             fn wrapped(self) -> Self { self | 3 }
+            fn wrapping(self) -> Self::Wrapping { ::std::num::Wrapping(self) }
         }
 
         impl $crate::stream::UniqueStreamState for $type_ {

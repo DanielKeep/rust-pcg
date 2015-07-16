@@ -81,18 +81,9 @@ where
         + Shr<usize, Output=Wrapping<State>>,
 {
     fn output(internal: State) -> Result {
-        // constexpr bitcount_t bits        = bitcount_t(sizeof(itype) * 8);
         let bits = size_of::<State>() * 8;
-        // constexpr bitcount_t xtypebits   = bitcount_t(sizeof(xtype)*8);
         let result_bits = size_of::<Result>() * 8;
-        // constexpr bitcount_t sparebits   = bits - xtypebits;
         let spare_bits = bits - result_bits;
-        // constexpr bitcount_t wantedopbits =
-        //                       xtypebits >= 128 ? 7
-        //                     : xtypebits >=  64 ? 6
-        //                     : xtypebits >=  32 ? 5
-        //                     : xtypebits >=  16 ? 4
-        //                     :                    3;
         let wanted_op_bits = match result_bits {
             0...15 => 3,
             16...31 => 4,
@@ -100,36 +91,21 @@ where
             64...127 => 6,
             _ => 7
         };
-        // constexpr bitcount_t opbits =
-        //                       sparebits >= wantedopbits ? wantedopbits
-        //                                                 : sparebits;
         let op_bits = if spare_bits >= wanted_op_bits { wanted_op_bits } else { spare_bits };
-        // constexpr bitcount_t amplifier = wantedopbits - opbits;
         let amplifier = wanted_op_bits - op_bits;
-        // constexpr bitcount_t mask = (1 << opbits) - 1;
         let mask = (1 << op_bits) - 1;
-        // constexpr bitcount_t topspare    = opbits;
         let top_spare = op_bits;
-        // constexpr bitcount_t bottomspare = sparebits - topspare;
         let bottom_spare = spare_bits - top_spare;
-        // constexpr bitcount_t xshift      = (topspare + xtypebits)/2;
         let x_shift = (top_spare + result_bits) / 2;
-        // bitcount_t rot = opbits ? bitcount_t(internal >> (bits - opbits)) & mask
-        //                         : 0;
         let rot = if op_bits != 0 {
             (internal.clone() >> (bits - op_bits)).into_usize() & mask
         } else {
             0
         };
-        // bitcount_t amprot = (rot << amplifier) & mask;
         let amp_rot = (rot << amplifier) & mask;
-        // internal ^= internal >> xshift;
         let internal = internal.clone() ^ (internal >> x_shift);
-        // xtype result = xtype(internal >> bottomspare);
         let result = Result::from_state(internal >> bottom_spare);
-        // result = rotr(result, amprot);
         let result = result.rotate_right(amp_rot as u32);
-        // return result;
         result
     }
 }
