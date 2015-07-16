@@ -70,6 +70,70 @@ fn test_pcg32() {
 }
 
 #[test]
+fn test_pcg32_oneseq() {
+    let properties = &RngProperties {
+        period_pow2: 64,
+        streams_pow2: 0,
+        size_of_rng: 8,
+        is_mcg: false,
+    };
+    let rounds = &[
+        Round {
+            dump: "6364136223846793005 1442695040888963407 10915315373440060052",
+            numbers: &[0xc2f57bd6,0x6b07c4a9,0x72b7b29b,0x44215383,0xf5af5ead,0x68beb632],
+            coins: "THTHHHTTHHTTHTTHTHHHTHTTTHTTHTTHTTTHHTTTTTHHTTTHTTHTHHTHHHTTHTTTH",
+            rolls: &[4,1,3,3,6,6,5,1,3,4,4,3,2,2,5,4,1,3,3,3,1,4,6,4,6,6,1,6,1,2,3,6,6],
+            rolls_used: 33,
+            cards: "2d 5c 3h 6d Js 9c 4h Ts Qs 5d Ks 5h Ad Ac Qh Th Jd Kc Tc 7s Ah Kd \
+                    7h 3c 4d 8s 2c 3d Kh 8h Jc 6h 4c 8d Qc 7c Td 2s 3s 4s 7d Qd Jh As \
+                    6c 8c 5s 2h 6s 9d 9s 9h",
+        },
+        Round {
+            dump: "6364136223846793005 1442695040888963407 5709138325044364821",
+            numbers: &[0x0573afcc,0x2cab16db,0x6af6f55a,0xe916bec2,0x1ca9b4a4,0xbb2778eb],
+            coins: "THHHTHTTTHHHTTTTTTHTTHTHTHHHTHHHTHTHTTHTTTTTHTHHTHHTTHHHHHTTTHTTH",
+            rolls: &[1,5,3,3,5,1,5,6,5,6,6,3,5,5,6,6,2,6,4,1,5,6,3,6,5,5,1,3,2,4,5,1,1],
+            rolls_used: 33,
+            cards: "9c Ad 5d 7d Ah 8c Th Kd 5c Js 7c Kc Kh 6c Ks Tc Td 3d 7h 2d 5s 9s \
+                    3h As 9d 8h 4s 6h Ts 2c Jh 3c 8s 4h 5h 6s Jd 8d 3s 6d 7s 4d Ac Qc \
+                    4c 2h Qh 9h Qd 2s Qs Jc",
+        },
+        Round {
+            dump: "6364136223846793005 1442695040888963407 13107181355803608426",
+            numbers: &[0x114306f3,0xb9bf0d91,0x1aed8e5e,0x587de8b7,0x7477c8bd,0xd853ec9d],
+            coins: "HTHHTHHHHTHTHTTHTHTHHTHTTHHHTTTTHHTTTTTTHTHTTTHTHTTTHTHHHHTTTTTTT",
+            rolls: &[1,5,4,2,1,4,6,3,2,1,6,3,6,4,3,1,4,4,2,5,5,3,3,2,6,1,6,3,2,6,5,6,3],
+            rolls_used: 33,
+            cards: "Ah 8d Ad Jd 2d 3h Jh 7c Kc Ks 3d As 4s 3s 8h Qc 7d Td 6c 8c 4d 5c \
+                    9d Qh Js Ac Kd 5s 6d Ts 9h 9s 9c 2c 5h 3c 5d Th 4c 6s 7s Qd 7h 2h \
+                    Tc 6h 4h 8s Qs Jc Kh 2s",
+        },
+        Round {
+            dump: "6364136223846793005 1442695040888963407 14730055255668324387",
+            numbers: &[0xb982cd46,0x01cc6f94,0x0ad658ae,0xf6c6c97e,0xd1b772dd,0x0098599e],
+            coins: "HTTHTTHHHHTHTHHHTTHTHTHTTTHTHTHHTHTHTTTTHHTTHHHTHTTHHTTTHHHTTHHHH",
+            rolls: &[4,4,5,4,2,1,4,2,2,5,2,5,6,6,2,1,6,6,2,6,6,3,6,2,1,4,1,1,1,1,5,1,5],
+            rolls_used: 33,
+            cards: "6s Td 3h Js 7h Jh Ac Kh Th 4h 3c 6d Qs Ah 8h Kc Tc 2h 8c 2c Jd 2s \
+                    Qh 4d 3d Ks 7s 9d 5d 2d 5s 5h Jc 3s 9s Qd Qc 7d 6h As 8s 4s 4c 8d \
+                    9c 6c 5c Ad 7c 9h Kd Ts",
+        },
+        Round {
+            dump: "6364136223846793005 1442695040888963407 13134172073006285072",
+            numbers: &[0xef3c7322,0xa1ff2188,0x3f564b42,0x91c90425,0x17711b95,0xf43aa1f7],
+            coins: "HTTHHHTTHTTTHTHHTHTHTHHTHHTTTHTTHTHHTHTTTTTHTHTTHHHHTHTHTHHTHHTHT",
+            rolls: &[4,1,6,3,3,2,5,6,3,2,6,5,3,1,5,5,4,6,4,4,2,5,5,4,1,5,2,4,5,5,5,3,5],
+            rolls_used: 33,
+            cards: "6c 8d 4d Jc 9d As 9s 3c 9c Th Ks Qs 4c Js Ah Qc Ac Kd Td Qd Kh Kc \
+                    Tc Jd 6s 5h 8c 8s Ad 5s 4s Ts 3h 3s 7h 7d 8h 2c 2d 5c 6h 2h 3d 7c \
+                    9h 7s 4h 2s Jh 6d Qh 5d",
+        },
+    ];
+
+    test_pcg(properties, rounds, |state, _| pcg::Pcg32OneSeq::with_state(state as u64))
+}
+
+#[test]
 fn test_pcg32_fast() {
     let properties = &RngProperties {
         period_pow2: 62,

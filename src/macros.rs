@@ -55,6 +55,20 @@ macro_rules! pcg_setseq {
     };
 }
 
+macro_rules! pcg_oneseq {
+    ($name:ident: $rt:ty, $st:ty, $o:ident) => {
+        pub type $name = Engine<$rt, $st, $o<$rt, $st>,
+            OutputPreviousIfSmall<$st>, SingleStream<$st>, PcgDefault>;
+    };
+}
+
+macro_rules! pcg_unique {
+    ($name:ident: $rt:ty, $st:ty, $o:ident) => {
+        pub type $name = Engine<$rt, $st, $o<$rt, $st>,
+            OutputPreviousIfSmall<$st>, UniqueStream<$st>, PcgDefault>;
+    };
+}
+
 macro_rules! pcg_mcg {
     ($name:ident: $rt:ty, $st:ty, $o:ident) => {
         pub type $name = Engine<$rt, $st, $o<$rt, $st>,
