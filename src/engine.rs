@@ -2,7 +2,6 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::mem::size_of;
 use std::result::Result as StdResult;
-use std::num::Wrapping;
 use num::{Bounded, One, Zero};
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 use {PcgGenerator, PcgMultiplier, PcgOutput, PcgPhase, PcgResult, PcgState, PcgStatefulStream, PcgStream};
