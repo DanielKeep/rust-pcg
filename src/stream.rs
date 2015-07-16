@@ -3,6 +3,7 @@ use std::cmp::min;
 use std::mem::size_of;
 use std::ops::Shl;
 use num::{One, Zero};
+use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 use {PcgDefault, PcgIncrement, PcgState, PcgStatefulStream, PcgStream};
 
 #[derive(Clone, Debug)]
@@ -13,6 +14,13 @@ impl<State> UniqueStream<State>
 where State: PcgState + UniqueStreamState {
     pub fn stream(&self) -> State {
         self.increment() >> 1
+    }
+}
+
+impl<State> Default for UniqueStream<State>
+where State: PcgState + UniqueStreamState {
+    fn default() -> Self {
+        UniqueStream(PhantomData)
     }
 }
 
@@ -35,6 +43,13 @@ where State: PcgState + UniqueStreamState {
 pub struct NoStream<State>(PhantomData<State>)
 where State: PcgState;
 
+impl<State> Default for NoStream<State>
+where State: PcgState {
+    fn default() -> Self {
+        NoStream(PhantomData)
+    }
+}
+
 impl<State> PcgStream<State> for NoStream<State>
 where State: PcgState {
     fn can_specify_stream() -> bool { false }
@@ -43,6 +58,23 @@ where State: PcgState {
 
     fn increment(&self) -> State {
         State::zero()
+    }
+}
+
+impl<State> Decodable for NoStream<State>
+where State: PcgState {
+    fn decode<D>(d: &mut D) -> ::std::result::Result<Self, D::Error>
+    where D: Decoder {
+        try!(d.read_nil());
+        Ok(NoStream::default())
+    }
+}
+
+impl<State> Encodable for NoStream<State>
+where State: PcgState {
+    fn encode<E>(&self, e: &mut E) -> ::std::result::Result<(), E::Error>
+    where E: Encoder {
+        e.emit_nil()
     }
 }
 
@@ -60,6 +92,13 @@ where
     }
 }
 
+impl<State> Default for SingleStream<State>
+where State: PcgState {
+    fn default() -> Self {
+        SingleStream(PhantomData)
+    }
+}
+
 impl<State> PcgStream<State> for SingleStream<State>
 where
     State: PcgState,
@@ -71,6 +110,23 @@ where
 
     fn increment(&self) -> State {
         PcgDefault::increment()
+    }
+}
+
+impl<State> Decodable for SingleStream<State>
+where State: PcgState {
+    fn decode<D>(d: &mut D) -> ::std::result::Result<Self, D::Error>
+    where D: Decoder {
+        try!(d.read_nil());
+        Ok(SingleStream::default())
+    }
+}
+
+impl<State> Encodable for SingleStream<State>
+where State: PcgState {
+    fn encode<E>(&self, e: &mut E) -> ::std::result::Result<(), E::Error>
+    where E: Encoder {
+        e.emit_nil()
     }
 }
 
@@ -134,5 +190,29 @@ where
 
     fn increment(&self) -> State {
         self.inc.clone()
+    }
+}
+
+impl<State> Decodable for SpecificStream<State>
+where
+    State: PcgState + Decodable + Shl<usize>,
+    PcgDefault: PcgIncrement<State>,
+{
+    fn decode<D>(d: &mut D) -> ::std::result::Result<Self, D::Error>
+    where D: Decoder {
+        Ok(SpecificStream {
+            inc: try!(State::decode(d)),
+        })
+    }
+}
+
+impl<State> Encodable for SpecificStream<State>
+where
+    State: PcgState + Encodable + Shl<usize>,
+    PcgDefault: PcgIncrement<State>,
+{
+    fn encode<E>(&self, e: &mut E) -> ::std::result::Result<(), E::Error>
+    where E: Encoder {
+        self.inc.encode(e)
     }
 }
