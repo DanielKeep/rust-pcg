@@ -167,16 +167,19 @@ where
         if Stream::is_mcg() { distance >> 2 } else { distance }
     }
 
+    #[inline]
     fn bump(stream: &Stream, state: State) -> State {
         use bounds::WrappingState;
         (state.wrapping() * Multiplier::multiplier().wrapping() + stream.increment().wrapping()).into_state()
     }
 
+    #[inline]
     fn base_generate(&mut self) -> State {
         self.state = Self::bump(&self.stream, self.state.clone());
         self.state.clone()
     }
 
+    #[inline]
     fn base_generate0(&mut self) -> State {
         let old_state = self.state.clone();
         self.state = Self::bump(&self.stream, self.state.clone());
@@ -229,6 +232,7 @@ where
         Some(self.distance(other.state.clone(), mask))
     }
 
+    #[inline]
     fn next(&mut self) -> Result {
         let new = if Phase::output_previous() {
             self.base_generate0()
@@ -238,6 +242,7 @@ where
         Output::output(new)
     }
 
+    #[inline]
     fn next_bounded(&mut self, upper_bound: Result) -> Result
     where Result: NextBoundedResult {
         use bounds::NextBoundedWrappingResult;

@@ -159,14 +159,14 @@ pcg_define_constants! { PcgDefault: u64 = 6364136223846793005, 14426950408889634
 
 #[derive(Clone, Debug)]
 pub enum OutputPrevious {}
-impl PcgPhase for OutputPrevious { fn output_previous() -> bool { true } }
+impl PcgPhase for OutputPrevious { #[inline] fn output_previous() -> bool { true } }
 
 #[derive(Clone, Debug)]
 pub enum OutputNext {}
-impl PcgPhase for OutputNext { fn output_previous() -> bool { false } }
+impl PcgPhase for OutputNext { #[inline] fn output_previous() -> bool { false } }
 
 #[derive(Clone, Debug)]
 pub struct OutputPreviousIfSmall<T>(PhantomData<T>);
 impl<T> PcgPhase for OutputPreviousIfSmall<T> {
-    fn output_previous() -> bool { ::std::mem::size_of::<T>() <= 8 }
+    #[inline] fn output_previous() -> bool { ::std::mem::size_of::<T>() <= 8 }
 }

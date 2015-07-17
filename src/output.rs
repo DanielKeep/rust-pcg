@@ -13,6 +13,7 @@ where
     Result: PcgResult<State>,
     State: PcgState,
 {
+    #[inline]
     fn default() -> Self {
         XshRs(PhantomData)
     }
@@ -28,6 +29,7 @@ where
         + Shl<usize, Output=Wrapping<State>>
         + Shr<usize, Output=Wrapping<State>>,
 {
+    #[inline]
     fn output(internal: State) -> Result {
         let bits = size_of::<State>() * 8;
         let result_bits = size_of::<Result>() * 8;
@@ -64,6 +66,7 @@ where
     Result: PcgResult<State>,
     State: PcgState,
 {
+    #[inline]
     fn default() -> Self {
         XshRr(PhantomData)
     }
@@ -80,6 +83,7 @@ where
         + Shl<usize, Output=Wrapping<State>>
         + Shr<usize, Output=Wrapping<State>>,
 {
+    #[inline]
     fn output(internal: State) -> Result {
         let bits = size_of::<State>() * 8;
         let result_bits = size_of::<Result>() * 8;

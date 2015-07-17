@@ -12,6 +12,7 @@ where State: PcgState + UniqueStreamState;
 
 impl<State> UniqueStream<State>
 where State: PcgState + UniqueStreamState {
+    #[inline]
     pub fn stream(&self) -> State {
         self.increment() >> 1
     }
@@ -19,21 +20,24 @@ where State: PcgState + UniqueStreamState {
 
 impl<State> Default for UniqueStream<State>
 where State: PcgState + UniqueStreamState {
+    #[inline]
     fn default() -> Self {
         UniqueStream(PhantomData)
     }
 }
 
 pub trait UniqueStreamState {
+    #[inline]
     fn from_usize(value: usize) -> Self;
 }
 
 impl<State> PcgStream<State> for UniqueStream<State>
 where State: PcgState + UniqueStreamState {
-    fn can_specify_stream() -> bool { false }
-    fn is_mcg() -> bool { false }
-    fn streams_pow2() -> usize { min(size_of::<State>(), size_of::<usize>())*8 - 1 }
+    #[inline] fn can_specify_stream() -> bool { false }
+    #[inline] fn is_mcg() -> bool { false }
+    #[inline] fn streams_pow2() -> usize { min(size_of::<State>(), size_of::<usize>())*8 - 1 }
 
+    #[inline]
     fn increment(&self) -> State {
         State::from_usize((self as *const _ as usize) | 1)
     }
@@ -45,6 +49,7 @@ where State: PcgState;
 
 impl<State> Default for NoStream<State>
 where State: PcgState {
+    #[inline]
     fn default() -> Self {
         NoStream(PhantomData)
     }
@@ -52,10 +57,11 @@ where State: PcgState {
 
 impl<State> PcgStream<State> for NoStream<State>
 where State: PcgState {
-    fn can_specify_stream() -> bool { false }
-    fn is_mcg() -> bool { true }
-    fn streams_pow2() -> usize { 0 }
+    #[inline] fn can_specify_stream() -> bool { false }
+    #[inline] fn is_mcg() -> bool { true }
+    #[inline] fn streams_pow2() -> usize { 0 }
 
+    #[inline]
     fn increment(&self) -> State {
         State::zero()
     }
@@ -87,6 +93,7 @@ where
     State: PcgState,
     PcgDefault: PcgIncrement<State>,
 {
+    #[inline]
     pub fn stream(&self) -> State {
         self.increment() >> 1
     }
@@ -94,6 +101,7 @@ where
 
 impl<State> Default for SingleStream<State>
 where State: PcgState {
+    #[inline]
     fn default() -> Self {
         SingleStream(PhantomData)
     }
@@ -104,10 +112,11 @@ where
     State: PcgState,
     PcgDefault: PcgIncrement<State>,
 {
-    fn can_specify_stream() -> bool { false }
-    fn is_mcg() -> bool { false }
-    fn streams_pow2() -> usize { 0 }
+    #[inline] fn can_specify_stream() -> bool { false }
+    #[inline] fn is_mcg() -> bool { false }
+    #[inline] fn streams_pow2() -> usize { 0 }
 
+    #[inline]
     fn increment(&self) -> State {
         PcgDefault::increment()
     }
@@ -144,10 +153,12 @@ where
     State: PcgState + Shl<usize, Output=State>,
     PcgDefault: PcgIncrement<State>,
 {
+    #[inline]
     pub fn stream(&self) -> State {
         self.inc.clone() >> 1
     }
 
+    #[inline]
     pub fn set_stream(&mut self, specific_seq: State) {
         *self = SpecificStream::from_stream_state(specific_seq);
     }
@@ -158,6 +169,7 @@ where
     State: PcgState + Default + Shl<usize, Output=State>,
     PcgDefault: PcgIncrement<State>,
 {
+    #[inline]
     fn default() -> Self {
         SpecificStream {
             inc: State::default(),
@@ -170,6 +182,7 @@ where
     State: PcgState + Shl<usize, Output=State>,
     PcgDefault: PcgIncrement<State>,
 {
+    #[inline]
     fn from_stream_state(state: State) -> Self {
         SpecificStream {
             inc: (state << 1) | State::one(),
@@ -182,10 +195,11 @@ where
     State: PcgState + Shl<usize>,
     PcgDefault: PcgIncrement<State>,
 {
-    fn can_specify_stream() -> bool { true }
-    fn is_mcg() -> bool { false }
-    fn streams_pow2() -> usize { size_of::<State>()*8 - 1 }
+    #[inline] fn can_specify_stream() -> bool { true }
+    #[inline] fn is_mcg() -> bool { false }
+    #[inline] fn streams_pow2() -> usize { size_of::<State>()*8 - 1 }
 
+    #[inline]
     fn increment(&self) -> State {
         self.inc.clone()
     }
