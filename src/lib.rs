@@ -30,6 +30,9 @@ pub use engine::Engine;
 #[doc(inline)] pub use engines::McgXshRs_64_32 as Pcg32Fast;
 
 #[doc(inline)] pub use engines::SetSeqRxsMXs_8_8 as Pcg8OnceInsecure;
+#[doc(inline)] pub use engines::SetSeqRxsMXs_16_16 as Pcg16OnceInsecure;
+#[doc(inline)] pub use engines::SetSeqRxsMXs_32_32 as Pcg32OnceInsecure;
+#[doc(inline)] pub use engines::SetSeqRxsMXs_64_64 as Pcg64OnceInsecure;
 
 pub trait PcgGenerator {
     type Result: PcgResult<Self::State>;
