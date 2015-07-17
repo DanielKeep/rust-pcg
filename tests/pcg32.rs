@@ -17,6 +17,7 @@ fn test_pcg32() {
         Round {
             dump: "6364136223846793005 109 1753877967969059832",
             numbers: &[0xa15c02b7,0x7b47f409,0xba1d3330,0x83d2f293,0xbfa4784b,0xcbed606e],
+            again: None,
             coins: "HHTTTHTHHHTHTTTHHHHHTTTHHHTHTHTHTTHTTTHHHHHHTTTTHHTTTTTHTTTTTTTHT",
             rolls: &[3,4,1,1,2,2,3,2,4,3,2,4,3,3,5,2,3,1,3,1,5,1,4,1,5,6,4,6,6,2,6,3,3],
             rolls_used: 33,
@@ -27,6 +28,7 @@ fn test_pcg32() {
         Round {
             dump: "6364136223846793005 109 262717807517198251",
             numbers: &[0x74ab93ad,0x1c1da000,0x494ff896,0x34462f2f,0xd308a3e5,0x0fa83bab],
+            again: None,
             coins: "HHHHHHHHHHTHHHTHTHTHTHTTTTHHTTTHHTHHTHTTHHTTTHHHHHHTHTTHTHTTTTTTT",
             rolls: &[5,1,1,3,3,2,4,5,3,2,2,6,4,3,2,4,2,4,3,2,3,6,3,2,3,4,2,4,1,1,5,4,4],
             rolls_used: 33,
@@ -37,6 +39,7 @@ fn test_pcg32() {
         Round {
             dump: "6364136223846793005 109 8025279220029899418",
             numbers: &[0x39af5f9f,0x04196b18,0xc3c3eb28,0xc076c60c,0xc693e135,0xf8f63932],
+            again: None,
             coins: "HTTHHTTTTTHTTHHHTHTTHHTTHTHHTHTHTTTTHHTTTHHTHHTTHTTHHHTHHHTHTTTHT",
             rolls: &[5,1,5,3,2,2,4,5,3,3,1,3,4,6,3,2,3,4,2,2,3,1,5,2,4,6,6,4,2,4,3,3,6],
             rolls_used: 33,
@@ -47,6 +50,7 @@ fn test_pcg32() {
         Round {
             dump: "6364136223846793005 109 3719089583871696501",
             numbers: &[0x55ce6851,0x97a7726d,0x17e10815,0x58007d43,0x962fb148,0xb9bb55bd],
+            again: None,
             coins: "HHTHHTTTTHTHHHHHTTHHHTTTHHTHTHTHTHHTTHTHHHHHHTHHTHHTHHTTTTHHTHHTT",
             rolls: &[6,6,3,2,3,4,2,6,4,2,6,3,2,3,5,5,3,4,4,6,6,2,6,5,4,4,6,1,6,1,3,6,5],
             rolls_used: 33,
@@ -57,6 +61,7 @@ fn test_pcg32() {
         Round {
             dump: "6364136223846793005 109 12803124291375102636",
             numbers: &[0xfcef7cd6,0x1b488b5a,0xd0daf7ea,0x1d9a70f7,0x241a37cf,0x9a3857b7],
+            again: None,
             coins: "HHHHTHHTTHTTHHHTTTHHTHTHTTTTHTTHTHTTTHHHTHTHTTHTTHTHHTHTHHHTHTHTT",
             rolls: &[5,4,1,2,6,1,3,1,5,6,3,6,2,1,4,4,5,2,1,5,6,5,6,4,4,4,5,2,6,4,3,5,6],
             rolls_used: 33,
@@ -81,6 +86,7 @@ fn test_pcg32_oneseq() {
         Round {
             dump: "6364136223846793005 1442695040888963407 10915315373440060052",
             numbers: &[0xc2f57bd6,0x6b07c4a9,0x72b7b29b,0x44215383,0xf5af5ead,0x68beb632],
+            again: None,
             coins: "THTHHHTTHHTTHTTHTHHHTHTTTHTTHTTHTTTHHTTTTTHHTTTHTTHTHHTHHHTTHTTTH",
             rolls: &[4,1,3,3,6,6,5,1,3,4,4,3,2,2,5,4,1,3,3,3,1,4,6,4,6,6,1,6,1,2,3,6,6],
             rolls_used: 33,
@@ -91,6 +97,7 @@ fn test_pcg32_oneseq() {
         Round {
             dump: "6364136223846793005 1442695040888963407 5709138325044364821",
             numbers: &[0x0573afcc,0x2cab16db,0x6af6f55a,0xe916bec2,0x1ca9b4a4,0xbb2778eb],
+            again: None,
             coins: "THHHTHTTTHHHTTTTTTHTTHTHTHHHTHHHTHTHTTHTTTTTHTHHTHHTTHHHHHTTTHTTH",
             rolls: &[1,5,3,3,5,1,5,6,5,6,6,3,5,5,6,6,2,6,4,1,5,6,3,6,5,5,1,3,2,4,5,1,1],
             rolls_used: 33,
@@ -101,6 +108,7 @@ fn test_pcg32_oneseq() {
         Round {
             dump: "6364136223846793005 1442695040888963407 13107181355803608426",
             numbers: &[0x114306f3,0xb9bf0d91,0x1aed8e5e,0x587de8b7,0x7477c8bd,0xd853ec9d],
+            again: None,
             coins: "HTHHTHHHHTHTHTTHTHTHHTHTTHHHTTTTHHTTTTTTHTHTTTHTHTTTHTHHHHTTTTTTT",
             rolls: &[1,5,4,2,1,4,6,3,2,1,6,3,6,4,3,1,4,4,2,5,5,3,3,2,6,1,6,3,2,6,5,6,3],
             rolls_used: 33,
@@ -111,6 +119,7 @@ fn test_pcg32_oneseq() {
         Round {
             dump: "6364136223846793005 1442695040888963407 14730055255668324387",
             numbers: &[0xb982cd46,0x01cc6f94,0x0ad658ae,0xf6c6c97e,0xd1b772dd,0x0098599e],
+            again: None,
             coins: "HTTHTTHHHHTHTHHHTTHTHTHTTTHTHTHHTHTHTTTTHHTTHHHTHTTHHTTTHHHTTHHHH",
             rolls: &[4,4,5,4,2,1,4,2,2,5,2,5,6,6,2,1,6,6,2,6,6,3,6,2,1,4,1,1,1,1,5,1,5],
             rolls_used: 33,
@@ -121,6 +130,7 @@ fn test_pcg32_oneseq() {
         Round {
             dump: "6364136223846793005 1442695040888963407 13134172073006285072",
             numbers: &[0xef3c7322,0xa1ff2188,0x3f564b42,0x91c90425,0x17711b95,0xf43aa1f7],
+            again: None,
             coins: "HTTHHHTTHTTTHTHHTHTHTHHTHHTTTHTTHTHHTHTTTTTHTHTTHHHHTHTHTHHTHHTHT",
             rolls: &[4,1,6,3,3,2,5,6,3,2,6,5,3,1,5,5,4,6,4,4,2,5,5,4,1,5,2,4,5,5,5,3,5],
             rolls_used: 33,
@@ -145,6 +155,7 @@ fn test_pcg32_fast() {
         Round {
             dump: "6364136223846793005 0 43",
             numbers: &[0x00000000,0x5c400ccc,0x03a8459e,0x9bdb59c5,0xf1c9dcf5,0xaac0af3b],
+            again: None,
             coins: "HTHHTHHTTHTHHHTTTTTHHTTTTHTHTHTTHTTHHHHTHHTTTHHTTTTHTTTTHHHTHTHHT",
             rolls: &[1,3,1,4,3,1,4,3,5,1,5,1,6,3,4,6,2,3,3,5,5,2,5,6,5,3,2,4,2,3,1,1,3],
             rolls_used: 33,
@@ -155,6 +166,7 @@ fn test_pcg32_fast() {
         Round {
             dump: "6364136223846793005 0 3588989041792787143",
             numbers: &[0x9d4c8720,0x888c050e,0x20a18d88,0x9af6f5ac,0xe9e08d16,0x30dc8422],
+            again: None,
             coins: "HTHHHTTTHHHTTHHTTTTTHHHHHHHHHTTHHHHHHTTHHTTTHHTTTHHHTTTHHTHHTHTHH",
             rolls: &[1,6,5,2,2,4,3,6,3,6,4,2,4,3,4,6,6,3,4,4,5,6,4,4,5,4,6,2,1,2,6,2,3],
             rolls_used: 33,
@@ -165,6 +177,7 @@ fn test_pcg32_fast() {
         Round {
             dump: "6364136223846793005 0 375581696086973075",
             numbers: &[0xd9561348,0xc5f085ff,0x55b15d21,0xb00d4c13,0x1ad51817,0xb1687c92],
+            again: None,
             coins: "THTHHHTTTHTHHTHTHTTTTHHTTTTHHHTHTTTTTHHTHTHHHHHTTTHTTTTHTTHTTHTHT",
             rolls: &[5,3,4,1,4,1,5,5,3,1,2,5,4,1,1,6,2,2,1,2,2,2,4,6,3,6,2,4,6,5,2,5,1],
             rolls_used: 33,
@@ -175,6 +188,7 @@ fn test_pcg32_fast() {
         Round {
             dump: "6364136223846793005 0 7737214110345585487",
             numbers: &[0xb00d4873,0x97e247d1,0x3aed3e74,0xa6f02f6a,0x007428ae,0x88fb2312],
+            again: None,
             coins: "HTTHTHTTTHHTHHTTHHTTHTHHTTTHTHTHHHTHTHTTTHHHHTHHTHHHHTTHHHHTHHHHT",
             rolls: &[2,5,2,5,3,4,5,6,4,3,3,3,2,2,2,3,3,3,2,6,1,2,1,3,5,4,6,6,6,3,4,5,1],
             rolls_used: 33,
@@ -185,6 +199,7 @@ fn test_pcg32_fast() {
         Round {
             dump: "6364136223846793005 0 9974383512159695803",
             numbers: &[0x9b08b727,0x4b6859af,0x06de6f08,0x628f4193,0x39397e2d,0x9e8304d1],
+            again: None,
             coins: "THTHHTTTTHTTHHHTHTHTHTHHTTTHHHHTHHHTTTHHTHTHHTHTHTTTTTHHHHHHTTTHT",
             rolls: &[6,1,4,1,3,4,5,6,5,1,2,6,3,3,6,4,6,5,2,1,3,6,3,3,1,5,5,3,6,2,2,2,2],
             rolls_used: 33,

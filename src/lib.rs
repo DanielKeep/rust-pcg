@@ -29,6 +29,8 @@ pub use engine::Engine;
 #[doc(inline)] pub use engines::UniqueXshRr_64_32 as Pcg32Unique;
 #[doc(inline)] pub use engines::McgXshRs_64_32 as Pcg32Fast;
 
+#[doc(inline)] pub use engines::SetSeqRxsMXs_8_8 as Pcg8OnceInsecure;
+
 pub trait PcgGenerator {
     type Result: PcgResult<Self::State>;
     type State: PcgState;
@@ -139,6 +141,10 @@ pub trait PcgIncrement<State> {
     fn increment() -> State;
 }
 
+pub trait McgMultiplier {
+    fn multiplier() -> Self;
+}
+
 pcg_impl_result! { u8:  u8, u16, u32, u64 }
 pcg_impl_result! { u16: u16, u32, u64 }
 pcg_impl_result! { u32: u32, u64 }
@@ -152,10 +158,15 @@ pcg_impl_state! { u64 }
 #[derive(Clone, Debug)]
 pub enum PcgDefault {}
 
-pcg_define_constants! { PcgDefault: u8  = 141, 77 }
-pcg_define_constants! { PcgDefault: u16 = 12829, 47989 }
-pcg_define_constants! { PcgDefault: u32 = 747796405, 2891336453 }
-pcg_define_constants! { PcgDefault: u64 = 6364136223846793005, 1442695040888963407 }
+pcg_define_pcg_constants! { PcgDefault: u8  = 141, 77 }
+pcg_define_pcg_constants! { PcgDefault: u16 = 12829, 47989 }
+pcg_define_pcg_constants! { PcgDefault: u32 = 747796405, 2891336453 }
+pcg_define_pcg_constants! { PcgDefault: u64 = 6364136223846793005, 1442695040888963407 }
+
+pcg_define_mcg_constant! { u8  = 217 }
+pcg_define_mcg_constant! { u16 = 62169 }
+pcg_define_mcg_constant! { u32 = 277803737 }
+pcg_define_mcg_constant! { u64 = 12605985483714917081 }
 
 #[derive(Clone, Debug)]
 pub enum OutputPrevious {}

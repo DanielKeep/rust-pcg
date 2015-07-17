@@ -1,4 +1,13 @@
-macro_rules! pcg_define_constants {
+macro_rules! pcg_define_mcg_constant {
+    ($type_:ty = $multiplier:expr) => {
+        impl McgMultiplier for $type_ {
+            #[inline]
+            fn multiplier() -> $type_ { $multiplier }
+        }
+    };
+}
+
+macro_rules! pcg_define_pcg_constants {
     ($name:ident: $type_:ty = $multiplier:expr, $increment:expr) => {
         impl PcgMultiplier<$type_> for $name {
             #[inline]

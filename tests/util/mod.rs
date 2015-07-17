@@ -10,6 +10,16 @@ use self::num::{FromPrimitive, ToPrimitive};
 use self::pcg::{PcgGenerator, PcgStream};
 use self::pcg::bounds::{DistanceToState, NextBoundedResult};
 
+/// Some Const Array
+macro_rules! sca {
+    ($t:ty: $($e:expr),* $(,)*) => {
+        Some({
+            const ARRAY: &'static [$t] = &[$($e),*];
+            ARRAY
+        })
+    };
+}
+
 pub struct RngProperties {
     pub period_pow2: usize,
     pub streams_pow2: usize,
@@ -21,6 +31,7 @@ pub struct RngProperties {
 pub struct Round<'a, R: 'a> {
     pub dump: &'static str,
     pub numbers: &'a [R],
+    pub again: Option<&'a [R]>,
     pub coins: &'static str,
     pub rolls: &'a [u32],
     pub rolls_used: usize,
@@ -57,6 +68,7 @@ where
     let result_2 = FromPrimitive::from_usize(2).unwrap();
     let result_6 = FromPrimitive::from_usize(6).unwrap();
     let result_cards = FromPrimitive::from_usize(NUM_CARDS).unwrap();
+    let state_6 = FromPrimitive::from_usize(6).unwrap();
 
     for (round_i, round) in rounds.iter().enumerate() {
         println!("round {}", round_i);
@@ -71,9 +83,8 @@ where
         }
 
         // Again.
-        rng.backstep(FromPrimitive::from_usize(round.numbers.len()).unwrap());
-        assert_eq!(round.dump, rng.dump_internals());
-        for &ex in round.numbers {
+        rng.backstep(state_6);
+        for &ex in round.again.unwrap_or(round.numbers) {
             assert_eq!(ex, rng.next());
         }
 
@@ -85,15 +96,12 @@ where
 
         // Roll some dice.
         let rng_copy = rng.clone();
-        let mut rolls_used = 0;
         for &ex in round.rolls {
             assert_eq!(ex, rng.next_bounded(result_6).to_u32().unwrap() + 1);
-            rolls_used += 1;
         }
-        assert_eq!(rolls_used, round.rolls_used);
         assert_eq!(
-            rng_copy.distance_to(&rng).expect("compare rngs for rolls used").to_usize().unwrap(),
-            round.rolls_used
+            round.rolls_used,
+            rng_copy.distance_to(&rng).expect("compare rngs for rolls used").to_usize().unwrap()
         );
 
         let mut cards = vec![result_0; NUM_CARDS];

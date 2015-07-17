@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use std::mem::size_of;
 use std::num::Wrapping;
 use std::ops::{Add, BitAnd, BitXor, Mul, Shl, Shr};
-use {PcgOutput, PcgState, PcgResult};
+use {PcgOutput, PcgState, PcgResult, McgMultiplier};
 
 #[derive(Clone, Debug)]
 pub struct XshRs<Result, State>(PhantomData<(Result, State)>)
@@ -111,5 +111,53 @@ where
         let result = Result::from_state(internal >> bottom_spare);
         let result = result.rotate_right(amp_rot as u32);
         result
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RxsMXs<Result, State>(PhantomData<(Result, State)>)
+where Result: PcgResult<State>, State: PcgState;
+
+impl<Result, State> Default for RxsMXs<Result, State>
+where
+    Result: PcgResult<State>,
+    State: PcgState,
+{
+    #[inline]
+    fn default() -> Self {
+        RxsMXs(PhantomData)
+    }
+}
+
+impl<Result, State> PcgOutput<Result, State> for RxsMXs<Result, State>
+where
+    Result: PcgResult<State>,
+    State: PcgState + McgMultiplier + BitXor<Output=State>,
+{
+    #[inline]
+    fn output(internal: State) -> Result {
+        use bounds::WrappingState;
+
+        let result_bits = size_of::<Result>() * 8;
+        let bits = size_of::<State>() * 8;
+        let op_bits = match result_bits {
+            0...15 => 2,
+            16...31 => 3,
+            32...63 => 4,
+            64...127 => 5,
+            _ => 6
+        };
+        let shift = bits - result_bits;
+        let mask = (1 << op_bits) - 1;
+        let r_shift = if op_bits != 0 {
+            (internal.clone() >> (bits - op_bits)).into_usize() & mask
+        } else {
+            0
+        };
+        let internal = internal.clone() ^ (internal >> (op_bits + r_shift));
+        let internal = (internal.wrapping() * <State as McgMultiplier>::multiplier().wrapping()).into_state();
+        let result = internal >> shift;
+        let result = result.clone() ^ (result >> ((2 * result_bits + 2) / 3));
+        Result::from_state(result)
     }
 }
