@@ -127,9 +127,7 @@ where State: PcgState {
 
 pub trait PcgStatefulStream<State>: PcgStream<State>
 where State: PcgState {
-    type State;
-
-    fn from_stream_state(Self::State) -> Self;
+    fn from_stream_state(State) -> Self;
 }
 
 pub trait PcgMultiplier<State> {

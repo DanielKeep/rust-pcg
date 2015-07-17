@@ -59,7 +59,7 @@ where
         }
     }
 
-    pub fn with_stream(state: State, stream_state: Stream::State) -> Self
+    pub fn with_stream(state: State, stream_state: State) -> Self
     where
         Stream: PcgStatefulStream<State>,
     {

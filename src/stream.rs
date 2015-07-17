@@ -170,8 +170,6 @@ where
     State: PcgState + Shl<usize, Output=State>,
     PcgDefault: PcgIncrement<State>,
 {
-    type State = State;
-
     fn from_stream_state(state: State) -> Self {
         SpecificStream {
             inc: (state << 1) | State::one(),
