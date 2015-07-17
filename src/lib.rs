@@ -4,6 +4,7 @@
 - Split up PcgResult and PcgState into things that are *absolutely* needed, and things that can be in separate traits.
 */
 extern crate num;
+extern crate rand;
 extern crate rustc_serialize;
 
 use std::fmt::Debug;

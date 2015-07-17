@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use std::mem::size_of;
 use std::result::Result as StdResult;
 use num::{Bounded, One, Zero};
+use rand::{Rng, SeedableRng};
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 use {PcgGenerator, PcgMultiplier, PcgOutput, PcgPhase, PcgResult, PcgState, PcgStatefulStream, PcgStream};
 use bounds::{DistanceToState, NextBoundedResult};
@@ -312,6 +313,85 @@ where
 
     fn into_iter(self) -> Self::IntoIter {
         ::iter::IntoIterMut::new(self)
+    }
+}
+
+impl<State, Output, Phase, Stream, Multiplier>
+Rng
+for Engine<u32, State, Output, Phase, Stream, Multiplier>
+where
+    u32: PcgResult<State>,
+    State: PcgState,
+    Output: PcgOutput<u32, State>,
+    Phase: PcgPhase,
+    Stream: PcgStream<State> + Decodable,
+    Multiplier: PcgMultiplier<State>,
+{
+    fn next_u32(&mut self) -> u32 {
+        self.next()
+    }
+}
+
+impl<State, Output, Phase, Stream, Multiplier>
+Rng
+for Engine<u64, State, Output, Phase, Stream, Multiplier>
+where
+    u64: PcgResult<State>,
+    State: PcgState,
+    Output: PcgOutput<u64, State>,
+    Phase: PcgPhase,
+    Stream: PcgStream<State> + Decodable,
+    Multiplier: PcgMultiplier<State>,
+{
+    fn next_u32(&mut self) -> u32 {
+        // The upper bits are the best, apparently.
+        (self.next() >> 32) as u32
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        self.next()
+    }
+}
+
+impl<Result, State, Output, Phase, Stream, Multiplier>
+SeedableRng<State>
+for Engine<Result, State, Output, Phase, Stream, Multiplier>
+where
+    Engine<Result, State, Output, Phase, Stream, Multiplier>: Rng,
+    Result: PcgResult<State>,
+    State: PcgState,
+    Output: PcgOutput<Result, State>,
+    Phase: PcgPhase,
+    Stream: PcgStream<State> + Default,
+    Multiplier: PcgMultiplier<State>,
+{
+    fn reseed(&mut self, seed: State) {
+        *self = Self::with_state(seed);
+    }
+
+    fn from_seed(seed: State) -> Self {
+        Self::with_state(seed)
+    }
+}
+
+impl<Result, State, Output, Phase, Stream, Multiplier>
+SeedableRng<(State, State)>
+for Engine<Result, State, Output, Phase, Stream, Multiplier>
+where
+    Engine<Result, State, Output, Phase, Stream, Multiplier>: Rng,
+    Result: PcgResult<State>,
+    State: PcgState,
+    Output: PcgOutput<Result, State>,
+    Phase: PcgPhase,
+    Stream: PcgStream<State> + PcgStatefulStream<State> + Default,
+    Multiplier: PcgMultiplier<State>,
+{
+    fn reseed(&mut self, (seed, stream): (State, State)) {
+        *self = Self::with_stream(seed, stream);
+    }
+
+    fn from_seed((seed, stream): (State, State)) -> Self {
+        Self::with_stream(seed, stream)
     }
 }
 
