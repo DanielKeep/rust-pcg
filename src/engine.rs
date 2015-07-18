@@ -79,8 +79,25 @@ where
         }
     }
 
-    // TODO: engine(itype, sm::stream_state)
-    // TODO: engine(seedSeq)
+    pub fn with_state_from<It>(seq: It) -> Self
+    where
+        It: IntoIterator<Item=State>,
+        Stream: Default,
+    {
+        Self::with_state(seq.into_iter().next().expect("Engine init sequence empty"))
+    }
+
+    pub fn with_stream_from<It>(seq: It) -> Self
+    where
+        It: IntoIterator<Item=State>,
+        Stream: PcgSetStream<State>,
+    {
+        let mut seq = seq.into_iter();
+        Self::with_stream(
+            seq.next().expect("Engine init sequence empty"),
+            seq.next().expect("Engine init sequence not long enough")
+        )
+    }
 
     // TODO: seed (probably don't need it; it's just a re-assignment)
 

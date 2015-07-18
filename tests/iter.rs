@@ -37,3 +37,24 @@ fn test_iter_mut_bounded() {
         assert_eq!(exp, got);
     }
 }
+
+#[test]
+fn test_iter_seed() {
+    use pcg::Pcg64OneSeqOnceInsecure as Pcg64;
+    let mut seed_rng = Pcg64::with_state(0xdead_fade_cafe_d00d);
+    seed_rng.advance(0x0123_4567_89ab_cdef);
+    {
+        let rng = Pcg32::with_state_from(&mut seed_rng);
+        let exps = &[0xb17d6715, 0x735cc07c, 0x823ec4d2, 0x80776093];
+        for (&exp, got) in exps.iter().zip(rng) {
+            assert_eq!(exp, got);
+        }
+    }
+    {
+        let rng = Pcg32::with_stream_from(&mut seed_rng);
+        let exps = &[0xe5a98b4e, 0x09775081, 0xdf10ffcc, 0x44bdad76];
+        for (&exp, got) in exps.iter().zip(rng) {
+            assert_eq!(exp, got);
+        }
+    }
+}
