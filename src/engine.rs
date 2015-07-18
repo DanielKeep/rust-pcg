@@ -5,7 +5,7 @@ use std::result::Result as StdResult;
 use num::{Bounded, One, Zero};
 use rand::{Rng, SeedableRng};
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
-use {PcgGenerator, PcgMultiplier, PcgOutput, PcgPhase, PcgResult, PcgState, PcgStatefulStream, PcgStream};
+use {PcgGenerator, PcgMultiplier, PcgOutput, PcgPhase, PcgResult, PcgState, PcgSetStream, PcgStream};
 use bounds::{DistanceToState, NextBoundedResult};
 
 #[derive(Clone, Debug)]
@@ -60,12 +60,12 @@ where
         }
     }
 
-    pub fn with_stream(state: State, stream_state: State) -> Self
+    pub fn with_stream(state: State, specific_seq: State) -> Self
     where
-        Stream: PcgStatefulStream<State>,
+        Stream: PcgSetStream<State>,
     {
         use bounds::WrappingState;
-        let stream = Stream::from_stream_state(stream_state);
+        let stream = Stream::with_stream(specific_seq);
         Engine {
             state: {
                 if Stream::is_mcg() {
@@ -388,7 +388,7 @@ where
     State: PcgState,
     Output: PcgOutput<Result, State>,
     Phase: PcgPhase,
-    Stream: PcgStream<State> + PcgStatefulStream<State> + Default,
+    Stream: PcgStream<State> + PcgSetStream<State> + Default,
     Multiplier: PcgMultiplier<State>,
 {
     fn reseed(&mut self, (seed, stream): (State, State)) {

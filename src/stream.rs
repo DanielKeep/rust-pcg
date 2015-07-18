@@ -4,7 +4,7 @@ use std::mem::size_of;
 use std::ops::Shl;
 use num::{One, Zero};
 use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
-use {PcgDefault, PcgIncrement, PcgState, PcgStatefulStream, PcgStream};
+use {PcgDefault, PcgIncrement, PcgState, PcgSetStream, PcgStream};
 
 #[derive(Clone, Debug)]
 pub struct UniqueStream<State>(PhantomData<State>)
@@ -160,7 +160,7 @@ where
 
     #[inline]
     pub fn set_stream(&mut self, specific_seq: State) {
-        *self = SpecificStream::from_stream_state(specific_seq);
+        *self = SpecificStream::with_stream(specific_seq);
     }
 }
 
@@ -177,15 +177,15 @@ where
     }
 }
 
-impl<State> PcgStatefulStream<State> for SpecificStream<State>
+impl<State> PcgSetStream<State> for SpecificStream<State>
 where
     State: PcgState + Shl<usize, Output=State>,
     PcgDefault: PcgIncrement<State>,
 {
     #[inline]
-    fn from_stream_state(state: State) -> Self {
+    fn with_stream(specific_seq: State) -> Self {
         SpecificStream {
-            inc: (state << 1) | State::one(),
+            inc: (specific_seq << 1) | State::one(),
         }
     }
 }

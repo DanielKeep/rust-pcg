@@ -136,9 +136,9 @@ where State: PcgState {
     fn increment(&self) -> State;
 }
 
-pub trait PcgStatefulStream<State>: PcgStream<State>
+pub trait PcgSetStream<State>: PcgStream<State>
 where State: PcgState {
-    fn from_stream_state(State) -> Self;
+    fn with_stream(State) -> Self;
 }
 
 pub trait PcgMultiplier<State> {
