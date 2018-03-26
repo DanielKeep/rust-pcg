@@ -3,15 +3,16 @@
 
 - Split up PcgResult and PcgState into things that are *absolutely* needed, and things that can be in separate traits.
 */
-extern crate num;
+#[cfg(feature = "serde_derive")]
+#[macro_use] extern crate serde_derive;
+
+extern crate num_traits;
 extern crate rand;
-extern crate rustc_serialize;
 
 use std::fmt::Debug;
 use std::marker::PhantomData;
-use std::num::Wrapping;
 use std::ops::{BitOr, Shr};
-use num::{One, Zero};
+use num_traits::{One, Zero};
 use bounds::{DistanceToState, NextBoundedResult, WrappingState};
 
 #[macro_use] mod macros;

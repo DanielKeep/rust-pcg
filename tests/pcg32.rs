@@ -1,5 +1,5 @@
-#![feature(step_trait)] // Because we need Step for ranges.
-#![feature(zero_one)] // Because we need One for ranges.
+// #![feature(step_trait)] // Because we need Step for ranges.
+// #![feature(zero_one)] // Because we need One for ranges.
 
 extern crate pcg;
 mod util;

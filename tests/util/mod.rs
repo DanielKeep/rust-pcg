@@ -1,24 +1,12 @@
-extern crate num;
+extern crate num_traits;
 extern crate pcg;
 
 use std::fmt::Debug;
-use std::iter::Step;
 use std::mem::size_of;
-use std::num::One;
-use std::ops::Add;
-use self::num::{FromPrimitive, ToPrimitive};
+use std::ops::{Add, Range};
+use self::num_traits::{FromPrimitive, One, ToPrimitive};
 use self::pcg::{PcgGenerator, PcgStream};
 use self::pcg::bounds::{DistanceToState, NextBoundedResult};
-
-/// Some Const Array
-macro_rules! sca {
-    ($t:ty: $($e:expr),* $(,)*) => {
-        Some({
-            const ARRAY: &'static [$t] = &[$($e),*];
-            ARRAY
-        })
-    };
-}
 
 pub struct RngProperties {
     pub period_pow2: usize,
@@ -50,7 +38,8 @@ where
     Rng: PcgGenerator + Clone + Debug,
     Fn: FnOnce(usize, usize) -> Rng,
     Rng::Result: Copy + Debug + Eq + FromPrimitive + ToPrimitive
-        + One + Step + NextBoundedResult,
+        + One + NextBoundedResult,
+    Range<Rng::Result>: Iterator<Item=Rng::Result>,
     Rng::State: Copy + Debug + FromPrimitive + ToPrimitive + DistanceToState,
     for<'a> &'a Rng::Result: Add<Output=Rng::Result>,
 {

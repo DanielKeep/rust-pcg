@@ -1,8 +1,8 @@
 use std::num::Wrapping;
 use std::ops::{Add, BitAnd, Mul, Not, Rem, Shl, Shr, Sub};
-use num::{Bounded, One};
+use num_traits::{Bounded, One};
 
-pub trait DistanceToState: Not<Output=Self> {}
+pub trait DistanceToState: Not<Output=Self> + Sized {}
 
 impl<State> DistanceToState for State
 where State: Not<Output=State> {}

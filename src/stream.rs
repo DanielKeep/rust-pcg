@@ -1,9 +1,7 @@
-use std::marker::PhantomData;
 use std::cmp::min;
+use std::marker::PhantomData;
 use std::mem::size_of;
 use std::ops::Shl;
-use num::{One, Zero};
-use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 use {PcgDefault, PcgIncrement, PcgState, PcgSetStream, PcgStream};
 
 #[derive(Clone, Debug)]
@@ -44,7 +42,10 @@ where State: PcgState + UniqueStreamState {
 }
 
 #[derive(Clone, Debug)]
-pub struct NoStream<State>(PhantomData<State>)
+#[cfg_attr(feature = "serde_derive", derive(Deserialize, Serialize))]
+pub struct NoStream<State>(
+    #[cfg_attr(feature = "serde_derive", serde(skip))] PhantomData<State>,
+)
 where State: PcgState;
 
 impl<State> Default for NoStream<State>
@@ -67,25 +68,11 @@ where State: PcgState {
     }
 }
 
-impl<State> Decodable for NoStream<State>
-where State: PcgState {
-    fn decode<D>(d: &mut D) -> ::std::result::Result<Self, D::Error>
-    where D: Decoder {
-        try!(d.read_nil());
-        Ok(NoStream::default())
-    }
-}
-
-impl<State> Encodable for NoStream<State>
-where State: PcgState {
-    fn encode<E>(&self, e: &mut E) -> ::std::result::Result<(), E::Error>
-    where E: Encoder {
-        e.emit_nil()
-    }
-}
-
 #[derive(Clone, Debug)]
-pub struct SingleStream<State>(PhantomData<State>)
+#[cfg_attr(feature = "serde_derive", derive(Deserialize, Serialize))]
+pub struct SingleStream<State>(
+    #[cfg_attr(feature = "serde_derive", serde(skip))] PhantomData<State>,
+)
 where State: PcgState;
 
 impl<State> SingleStream<State>
@@ -122,24 +109,8 @@ where
     }
 }
 
-impl<State> Decodable for SingleStream<State>
-where State: PcgState {
-    fn decode<D>(d: &mut D) -> ::std::result::Result<Self, D::Error>
-    where D: Decoder {
-        try!(d.read_nil());
-        Ok(SingleStream::default())
-    }
-}
-
-impl<State> Encodable for SingleStream<State>
-where State: PcgState {
-    fn encode<E>(&self, e: &mut E) -> ::std::result::Result<(), E::Error>
-    where E: Encoder {
-        e.emit_nil()
-    }
-}
-
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde_derive", derive(Deserialize, Serialize))]
 pub struct SpecificStream<State>
 where
     State: PcgState + Shl<usize>,
@@ -202,29 +173,5 @@ where
     #[inline]
     fn increment(&self) -> State {
         self.inc.clone()
-    }
-}
-
-impl<State> Decodable for SpecificStream<State>
-where
-    State: PcgState + Decodable + Shl<usize>,
-    PcgDefault: PcgIncrement<State>,
-{
-    fn decode<D>(d: &mut D) -> ::std::result::Result<Self, D::Error>
-    where D: Decoder {
-        Ok(SpecificStream {
-            inc: try!(State::decode(d)),
-        })
-    }
-}
-
-impl<State> Encodable for SpecificStream<State>
-where
-    State: PcgState + Encodable + Shl<usize>,
-    PcgDefault: PcgIncrement<State>,
-{
-    fn encode<E>(&self, e: &mut E) -> ::std::result::Result<(), E::Error>
-    where E: Encoder {
-        self.inc.encode(e)
     }
 }

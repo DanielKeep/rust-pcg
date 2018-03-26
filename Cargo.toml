@@ -1,9 +1,17 @@
 [package]
 name = "pcg"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Daniel Keep <daniel.keep@gmail.com>"]
 
+[features]
+default = []
+serde = ["serde_derive"]
+
 [dependencies]
-num = "0.1.25"
-rand = "0.3.8"
-rustc-serialize = "0.3.15"
+num-traits = "0.2.2"
+rand = "0.4.2"
+# serde = { version = "1.0.35" , optional = true }
+serde_derive = { version = "1.0.35", optional = true }
+
+[dev-dependencies]
+serde_json = "1.0.13"

@@ -1,14 +1,12 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::mem::size_of;
-use std::result::Result as StdResult;
-use num::{Bounded, One, Zero};
 use rand::{Rng, SeedableRng};
-use rustc_serialize::{Decodable, Decoder, Encodable, Encoder};
 use {PcgGenerator, PcgMultiplier, PcgOutput, PcgPhase, PcgResult, PcgState, PcgSetStream, PcgStream};
 use bounds::{DistanceToState, NextBoundedResult};
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde_derive", derive(Deserialize, Serialize))]
 pub struct Engine<Result, State, Output, Phase, Stream, Multiplier>
 where
     Result: PcgResult<State>,
@@ -20,6 +18,7 @@ where
 {
     state: State,
     stream: Stream,
+    #[cfg_attr(feature = "serde_derive", serde(skip))]
     _phantom: PhantomData<(Result, Output, Phase, Stream, Multiplier)>,
 }
 
@@ -304,10 +303,10 @@ IntoIterator
 for Engine<Result, State, Output, Phase, Stream, Multiplier>
 where
     Result: PcgResult<State>,
-    State: PcgState + Decodable,
+    State: PcgState,
     Output: PcgOutput<Result, State>,
     Phase: PcgPhase,
-    Stream: PcgStream<State> + Decodable,
+    Stream: PcgStream<State>,
     Multiplier: PcgMultiplier<State>,
 {
     type Item = Result;
@@ -323,10 +322,10 @@ IntoIterator
 for &'a mut Engine<Result, State, Output, Phase, Stream, Multiplier>
 where
     Result: 'a + PcgResult<State>,
-    State: 'a + PcgState + Decodable,
+    State: 'a + PcgState,
     Output: 'a + PcgOutput<Result, State>,
     Phase: 'a + PcgPhase,
-    Stream: 'a + PcgStream<State> + Decodable,
+    Stream: 'a + PcgStream<State>,
     Multiplier: 'a + PcgMultiplier<State>,
     State::Wrapping: 'a,
 {
@@ -346,7 +345,7 @@ where
     State: PcgState,
     Output: PcgOutput<u32, State>,
     Phase: PcgPhase,
-    Stream: PcgStream<State> + Decodable,
+    Stream: PcgStream<State>,
     Multiplier: PcgMultiplier<State>,
 {
     fn next_u32(&mut self) -> u32 {
@@ -362,7 +361,7 @@ where
     State: PcgState,
     Output: PcgOutput<u64, State>,
     Phase: PcgPhase,
-    Stream: PcgStream<State> + Decodable,
+    Stream: PcgStream<State>,
     Multiplier: PcgMultiplier<State>,
 {
     fn next_u32(&mut self) -> u32 {
@@ -414,49 +413,5 @@ where
 
     fn from_seed((seed, stream): (State, State)) -> Self {
         Self::with_stream(seed, stream)
-    }
-}
-
-impl<Result, State, Output, Phase, Stream, Multiplier>
-Decodable
-for Engine<Result, State, Output, Phase, Stream, Multiplier>
-where
-    Result: PcgResult<State>,
-    State: PcgState + Decodable,
-    Output: PcgOutput<Result, State>,
-    Phase: PcgPhase,
-    Stream: PcgStream<State> + Decodable,
-    Multiplier: PcgMultiplier<State>,
-{
-    fn decode<D>(d: &mut D) -> StdResult<Self, D::Error>
-    where D: Decoder {
-        d.read_struct("pcg::engine::Engine", 2, |d| {
-            Ok(Engine {
-                state: try!(d.read_struct_field("state", 0, State::decode)),
-                stream: try!(d.read_struct_field("stream", 1, Stream::decode)),
-                _phantom: PhantomData,
-            })
-        })
-    }
-}
-
-impl<Result, State, Output, Phase, Stream, Multiplier>
-Encodable
-for Engine<Result, State, Output, Phase, Stream, Multiplier>
-where
-    Result: PcgResult<State>,
-    State: PcgState + Encodable,
-    Output: PcgOutput<Result, State>,
-    Phase: PcgPhase,
-    Stream: PcgStream<State> + Encodable,
-    Multiplier: PcgMultiplier<State>,
-{
-    fn encode<E>(&self, e: &mut E) -> ::std::result::Result<(), E::Error>
-    where E: Encoder {
-        e.emit_struct("pcg::engine::Engine", 2, |e| {
-            try!(e.emit_struct_field("state", 0, |e| self.state.encode(e)));
-            try!(e.emit_struct_field("stream", 1, |e| self.stream.encode(e)));
-            Ok(())
-        })
     }
 }
